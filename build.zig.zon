@@ -1,0 +1,7 @@
+.{
+    .name = .checklist,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.15.2",
+    .paths = .{""},
+    .fingerprint = 0x5c696d2f53ef7132,
+}
