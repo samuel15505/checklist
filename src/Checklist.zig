@@ -20,9 +20,16 @@ pub fn init(gpa: Allocator, name: []const u8) !@This() {
 }
 
 pub fn deinit(self: @This()) void {
-    for (self.items) |item| {
-        item.deinit(self.allocator);
+    for (self.items.items) |item| {
+        switch (item) {
+            .challenge => |c| c.deinit(self.allocator),
+            .text => |c| c.deinit(self.allocator),
+        }
     }
     self.items.deinit(self.allocator);
     self.allocator.free(self.name);
+}
+
+pub fn addItem(self: *@This(), item: Item) !void {
+    try self.items.append(self.allocator, item);
 }
