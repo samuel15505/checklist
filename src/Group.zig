@@ -14,8 +14,8 @@ pub fn init(gpa: Allocator, name: []const u8) !@This() {
     };
 }
 
-pub fn deinit(self: @This()) void {
-    for (self.checklists.items) |checklist| {
+pub fn deinit(self: *@This()) void {
+    for (self.checklists.items) |*checklist| {
         checklist.deinit();
     }
 

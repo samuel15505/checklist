@@ -1,0 +1,352 @@
+[
+    {
+        "name": "Tests",
+        "checklists": [
+            {
+                "name": "Test checklist",
+                "items": [
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Challenge item - Title max lenght 40",
+                        "comment": "This is the place to describe your item action and response - Max length 100",
+                        "response": "Response - Max length 40"
+                    },
+                    {
+                        "type": "SUBTITLE",
+                        "text": "Subtitle item - Max length 35",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "TEXT",
+                        "text": "Text item - Max length 150",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "NOTE",
+                        "text": "Note item - Max length 150",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "WARNING",
+                        "text": "Warning item - Max length 150",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CAUTION",
+                        "text": "Caution item - Max length 150",
+                        "comment": "",
+                        "response": ""
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "References",
+        "checklists": [
+            {
+                "name": "Reference Airspeeds",
+                "items": [
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Maximum Demonstrates Crosswind Component",
+                        "comment": "",
+                        "response": "17 kts"
+                    },
+                    {
+                        "type": "SUBTITLE",
+                        "text": "Takeoff Speeds:",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flaps UP Rotation",
+                        "comment": "",
+                        "response": "73 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flaps UP 50 ft",
+                        "comment": "",
+                        "response": "84 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flaps APPROACH Rotation",
+                        "comment": "",
+                        "response": "67 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flaps APPROACH 50 ft",
+                        "comment": "",
+                        "response": "77 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Best Angle_of_Climb (Vx)",
+                        "comment": "",
+                        "response": "84 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Best Rate-of-Climb (Vy)",
+                        "comment": "",
+                        "response": "100 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Cruise Climb",
+                        "comment": "",
+                        "response": "110 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Turbulent Air Penetration",
+                        "comment": "",
+                        "response": "141 kts"
+                    },
+                    {
+                        "type": "SUBTITLE",
+                        "text": "Landing Approach",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flaps DOWN",
+                        "comment": "",
+                        "response": "79 kts"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flaps UP",
+                        "comment": "",
+                        "response": "90 kts"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Normal Checklists",
+        "checklists": [
+            {
+                "name": "Flooded Engine",
+                "items": [
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Mixture",
+                        "comment": "",
+                        "response": "CUT OFF"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Propeller",
+                        "comment": "",
+                        "response": "HIGH RPM"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Throttle",
+                        "comment": "",
+                        "response": "1/2 Open"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Magneto/Start Switch",
+                        "comment": "",
+                        "response": "Start (Release to BOTH when engine starts)"
+                    },
+                    {
+                        "type": "SUBTITLE",
+                        "text": "As Engine Starts",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Throttle",
+                        "comment": "",
+                        "response": "Idle"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Mixture",
+                        "comment": "",
+                        "response": "FULL RICH"
+                    }
+                ]
+            },
+            {
+                "name": "Descent",
+                "items": [
+                    {
+                        "type": "TEXT",
+                        "text": "Arrival Self-Brief",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "TEXT",
+                        "text": "Throttle - MP As Required",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Fuel",
+                        "comment": "",
+                        "response": "Fullest Tank"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Fuel Pump",
+                        "comment": "",
+                        "response": "As Required"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Mixture",
+                        "comment": "",
+                        "response": "Adjust"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "ATIS/AWOS",
+                        "comment": "",
+                        "response": "Tune and Receive"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Altimeters",
+                        "comment": "",
+                        "response": "Set - As Required"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "COM/NAV",
+                        "comment": "",
+                        "response": "Set"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Autopilot",
+                        "comment": "",
+                        "response": "HDG v. NAV, Vertical Modes - As Required"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Flight Management System",
+                        "comment": "Flight Plan Arrivals & Approaches Loaded (As Appropriate) & VNAV/VLACL/etc (As Required)",
+                        "response": "As Appropriate & As Required"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Instruments",
+                        "comment": "",
+                        "response": "Check Proper Functioning"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Cockpit/Windscreen Heat",
+                        "comment": "",
+                        "response": "As Required"
+                    },
+                    {
+                        "type": "CAUTION",
+                        "text": "CHT - Cooling Rate Not To Exceed 50 deg F (22.8 deg C) Per Minute",
+                        "comment": "",
+                        "response": ""
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Emergency Checklists",
+        "checklists": [
+            {
+                "name": "In Flight Engine Fire",
+                "items": [
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Fuel Selector",
+                        "comment": "",
+                        "response": "OFF"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Cabin Heat",
+                        "comment": "",
+                        "response": "OFF"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Fuel Pump",
+                        "comment": "",
+                        "response": "OFF"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Increase Airspeed to Extinguish",
+                        "comment": "",
+                        "response": "LAND ASAP"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Emergency Landing",
+                        "comment": "",
+                        "response": "SEE: \"If No Restart & Time Permits\""
+                    }
+                ]
+            },
+            {
+                "name": "Icing",
+                "items": [
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Alternate Air",
+                        "comment": "",
+                        "response": "Open"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Pitot heat",
+                        "comment": "",
+                        "response": "On"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Cabin Heat & Defrost",
+                        "comment": "",
+                        "response": "On"
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Strongly Consider 180 degree turn or climb or descend",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Increase RPM",
+                        "comment": "",
+                        "response": ""
+                    },
+                    {
+                        "type": "CHALLENGE",
+                        "text": "Land Faster",
+                        "comment": "",
+                        "response": "As Required"
+                    }
+               ]
+            }
+        ]
+    }
+]

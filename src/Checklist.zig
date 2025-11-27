@@ -19,9 +19,9 @@ pub fn init(gpa: Allocator, name: []const u8) !@This() {
     };
 }
 
-pub fn deinit(self: @This()) void {
-    for (self.items.items) |item| {
-        switch (item) {
+pub fn deinit(self: *@This()) void {
+    for (self.items.items) |*item| {
+        switch (item.*) {
             .challenge => |c| c.deinit(self.allocator),
             .text => |c| c.deinit(self.allocator),
         }

@@ -1,6 +1,8 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
+const json = std.json;
+const Value = json.Value;
 
 title: []const u8,
 description: []const u8,
@@ -40,6 +42,24 @@ pub fn deinit(self: @This(), gpa: Allocator) void {
     gpa.free(self.response);
 }
 
+pub fn jsonParse(allocator: Allocator, source: anytype, options: json.ParseOptions) json.ParseError(@TypeOf(source.*))!@This() {
+    const I = struct {
+        type: []const u8,
+        text: []const u8,
+        comment: []const u8,
+        response: []const u8,
+    };
+
+    const tmp: I = try json.innerParse(I, allocator, source, options);
+    // const value = tmp.value;
+
+    return .{
+        .title = tmp.text,
+        .description = tmp.comment,
+        .response = tmp.response,
+    };
+}
+
 test "create new" {
     const title = "Check airspeed";
     const description = "Read airspeed and state 80 knots when speed reached";
@@ -70,4 +90,29 @@ test "leak test" {
     const res = new(alloc, &title, &description, &response);
 
     try testing.expectError(error.OutOfMemory, res);
+}
+
+test "jsonParse" {
+    const alloc = testing.allocator;
+    const data =
+        \\{
+        \\   "type": "CHALLENGE",
+        \\   "text": "Challenge item - Title max lenght 40",
+        \\   "comment": "This is the place to describe your item action and response - Max length 100",
+        \\   "response": "Response - Max length 40"
+        \\}
+    ;
+
+    const expected = @This(){
+        .title = "Challenge item - Title max lenght 40",
+        .description = "This is the place to describe your item action and response - Max length 100",
+        .response = "Response - Max length 40",
+    };
+
+    const parsed: json.Parsed(@This()) = try json.parseFromSlice(@This(), alloc, data, .{});
+    defer parsed.deinit();
+
+    const value = parsed.value;
+
+    try testing.expectEqualDeep(expected, value);
 }
