@@ -1,15 +1,16 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const check_items = @import("items/items.zig");
+const Item = check_items.Item;
 
 name: []const u8,
 items: std.ArrayList(Item),
 allocator: Allocator,
 
-const Item = union(enum) {
-    challenge: check_items.Challenge,
-    text: check_items.SimpleText,
-};
+// const Item = union(enum) {
+//     challenge: check_items.Challenge,
+//     text: check_items.SimpleText,
+// };
 
 pub fn init(gpa: Allocator, name: []const u8) !@This() {
     return .{
@@ -32,4 +33,14 @@ pub fn deinit(self: *@This()) void {
 
 pub fn addItem(self: *@This(), item: Item) !void {
     try self.items.append(self.allocator, item);
+}
+
+pub fn newChallenge(self: *@This(), title: []const u8, description: []const u8, response: []const u8) !void {
+    const item = try Item{ .challenge = .new(self.allocator, title, description, response) };
+    try self.addItem(item);
+}
+
+pub fn newSimpleText(self: *@This(), text: []const u8, text_type: check_items.SimpleText.TextType) !void {
+    const item = try Item{ .text = .init(self.allocator, text_type, text) };
+    try self.addItem(item);
 }

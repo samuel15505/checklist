@@ -60,6 +60,13 @@ pub fn jsonParse(allocator: Allocator, source: anytype, options: json.ParseOptio
     };
 }
 
+pub fn format(
+    self: @This(),
+    writer: *std.Io.Writer,
+) std.Io.Writer.Error!void {
+    try writer.print("Challenge:\n- {s}\n- {s}\n- {s}", .{ self.title, self.description, self.response });
+}
+
 test "create new" {
     const title = "Check airspeed";
     const description = "Read airspeed and state 80 knots when speed reached";

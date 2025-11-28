@@ -3,7 +3,7 @@ const Allocator = std.mem.Allocator;
 pub const Challenge = @import("Challenge.zig");
 pub const SimpleText = @import("SimpleText.zig");
 
-const Item = union(enum) {
+pub const Item = union(enum) {
     challenge: Challenge,
     text: SimpleText,
 
@@ -44,6 +44,16 @@ const Item = union(enum) {
                     else => unreachable,
                 } } };
             },
+        }
+    }
+
+    pub fn format(
+        self: @This(),
+        writer: *std.Io.Writer,
+    ) std.Io.Writer.Error!void {
+        switch (self) {
+            .challenge => |challenge| writer.print("{f}", .{challenge}),
+            .text => |text| writer.print("{f}", .{text}),
         }
     }
 };

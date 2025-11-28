@@ -22,3 +22,12 @@ pub fn deinit(self: *@This()) void {
     self.checklists.deinit(self.gpa);
     self.gpa.free(self.name);
 }
+
+pub fn addChecklist(self: *@This(), checklist: Checklist) !void {
+    try self.checklists.append(self.gpa, checklist);
+}
+
+pub fn newChecklist(self: *@This(), name: []const u8) !void {
+    const checklist = try Checklist.init(self.gpa, name);
+    try self.addChecklist(checklist);
+}
