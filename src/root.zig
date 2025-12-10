@@ -1,38 +1,63 @@
 const std = @import("std");
-pub const items = @import("items/items.zig");
-pub const Group = @import("Group.zig");
-pub const Checklist = @import("Checklist.zig");
 const Allocator = std.mem.Allocator;
 
 pub const CheckFile = struct {
-    groups: std.ArrayList(Group),
-    gpa: Allocator,
+    contents: Groups,
+    allocator: Allocator,
+};
 
-    pub fn init(gpa: Allocator) @This() {
+pub const Groups = struct {
+    groups: []Group,
+};
+
+pub const Group = struct {
+    name: []const u8,
+    checklists: []Checklist,
+};
+
+pub const Checklist = struct {
+    name: []const u8,
+    items: []Item,
+};
+
+pub const Item = struct {
+    item_type: ItemType,
+    text: []const u8,
+    comment: []const u8,
+    response: []const u8,
+
+    pub fn new(allocator: Allocator, item_type: ItemType, text: []const u8, comment: []const u8, response: []const u8) !@This() {
+        const fields = [_]std.ArrayList(u8){.empty} ** 3;
+        errdefer {
+            for (fields) |field| {
+                field.deinit(allocator);
+            }
+        }
+
+        try fields[0].appendSlice(allocator, text);
+        try fields[1].appendSlice(allocator, comment);
+        try fields[2].appendSlice(allocator, response);
+
         return .{
-            .groups = .empty,
-            .gpa = gpa,
+            .item_type = item_type,
+            .text = try fields[0].toOwnedSlice(allocator),
+            .comment = try fields[1].toOwnedSlice(allocator),
+            .response = try fields[2].toOwnedSlice(allocator),
         };
     }
 
-    pub fn deinit(self: @This()) void {
-        for (self.groups.items) |group| {
-            group.deinit();
-        }
-
-        self.groups.deinit(self.gpa);
-    }
-
-    pub fn addGroup(self: @This(), group: Group) !void {
-        try self.groups.append(self.gpa, group);
-    }
-
-    pub fn newGroup(self: *@This(), name: []const u8) !void {
-        const group = try Group.init(self.gpa, name);
-        try self.groups.append(self.gpa, group);
+    pub fn deinit(self: *@This(), allocator: Allocator) void {
+        allocator.free(self.text);
+        allocator.free(self.comment);
+        allocator.free(self.response);
     }
 };
 
-test {
-    std.testing.refAllDeclsRecursive(@This());
-}
+pub const ItemType = enum {
+    challenge,
+    subtitle,
+    text,
+    note,
+    warning,
+    caution,
+};
