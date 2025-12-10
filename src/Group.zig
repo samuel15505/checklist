@@ -31,3 +31,14 @@ pub fn newChecklist(self: *@This(), name: []const u8) !void {
     const checklist = try Checklist.init(self.gpa, name);
     try self.addChecklist(checklist);
 }
+
+pub fn format(
+    self: @This(),
+    writer: *std.Io.Writer,
+) std.Io.Writer.Error!void {
+    try writer.writeAll(self.name);
+
+    for (self.checklists.items, 0..) |checklist, i| {
+        try writer.print("\n{}. {s}", .{ i, checklist.name });
+    }
+}

@@ -31,6 +31,15 @@ pub const CheckFile = struct {
         const group = try Group.init(self.gpa, name);
         try self.groups.append(self.gpa, group);
     }
+
+    pub fn getGroup(self: *@This(), name: []const u8) ?*Group {
+        for (self.groups.items) |group| {
+            if (std.mem.eql(u8, group.name, name)) {
+                return &group;
+            }
+            return null;
+        }
+    }
 };
 
 test {

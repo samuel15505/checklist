@@ -64,3 +64,14 @@ const Input = struct {
     command: Command,
     target: Target,
 };
+
+const Walker = struct {
+    stack: std.ArrayList(ItemType),
+    current: ItemType,
+};
+
+const ItemType = union(enum) {
+    group: lib.Group,
+    checklist: lib.Checklist,
+    item: lib.items.Item,
+};

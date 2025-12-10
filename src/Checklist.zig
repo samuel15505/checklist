@@ -44,3 +44,13 @@ pub fn newSimpleText(self: *@This(), text: []const u8, text_type: check_items.Si
     const item = try Item{ .text = .init(self.allocator, text_type, text) };
     try self.addItem(item);
 }
+
+pub fn format(
+    self: @This(),
+    writer: *std.Io.Writer,
+) std.Io.Writer.Error!void {
+    try writer.writeAll(self.name);
+    for (self.items.items, 0..) |item, i| {
+        try writer.print("\n{}, {f}", .{ i, item });
+    }
+}
