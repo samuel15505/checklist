@@ -4,3 +4,11 @@ const lib = @import("root.zig");
 pub fn main() !void {
     std.debug.print("Hello checklist!", .{});
 }
+
+comptime {
+    std.testing.refAllDeclsRecursive(@This());
+}
+
+test {
+    std.testing.refAllDeclsRecursive(@This());
+}
