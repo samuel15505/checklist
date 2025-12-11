@@ -13,16 +13,54 @@ pub const Groups = struct {
 pub const Group = struct {
     name: []const u8,
     checklists: std.ArrayList(Checklist) = .empty,
+
+    pub fn new(allocator: Allocator, name: []const u8) !Group {
+        return .{
+            .name = try allocator.dupe(u8, name),
+        };
+    }
 };
 
 pub const Checklist = struct {
     name: []const u8,
     items: std.ArrayList(Item) = .empty,
+
+    pub fn new(allocator: Allocator, name: []const u8) !Checklist {
+        return .{
+            .name = try allocator.dupe(u8, name),
+        };
+    }
+
+    pub fn addItem(self: *@This(), allocator: Allocator, item: Item) !void {
+        try self.items.append(allocator, item);
+    }
+
+    pub fn delItem(self: *@This(), allocator: Allocator, i: usize) void {
+        var removed = self.items.orderedRemove(i);
+        removed.deinit(allocator);
+    }
+
+    pub fn addChallenge(self: *@This(), allocator: Allocator, title: []const u8, description: []const u8, response: []const u8) !void {
+        const item: Item = .{ .challenge = try .new(allocator, title, description, response) };
+        try self.addItem(allocator, item);
+    }
+
+    pub fn addText(self: *@This(), allocator: Allocator, item_type: ItemType, text: []const u8) !void {
+        const item: Item = .{ .text = try .new(allocator, item_type, text) };
+        try self.addItem(allocator, item);
+    }
 };
 
 pub const Item = union(enum) {
-    challenge: *Challenge,
-    text: *Text,
+    challenge: Challenge,
+    text: Text,
+
+    pub fn deinit(self: *@This(), allocator: Allocator) void {
+        switch (self) {
+            .challenge => |item| item.deinit(allocator),
+            .text => |item| item.deinit(allocator),
+        }
+    }
 };
 
 const Challenge = struct {
@@ -93,9 +131,13 @@ const Text = struct {
         allocator.free(self.text);
     }
 
-    // pub fn validate(self: *@This()) bool {
-
-    // }
+    pub fn validate(self: *@This()) bool {
+        if (self.item_type == .subtitle) {
+            return self.len <= 35;
+        } else {
+            return self.len <= 150;
+        }
+    }
 };
 
 pub const ItemType = enum {
