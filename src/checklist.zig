@@ -6,7 +6,7 @@ const Value = json.Value;
 
 pub const Checklist = struct {
     name: []const u8,
-    items: []Item = &.{},
+    items: std.ArrayList(Item) = .empty,
 
     pub fn new(allocator: Allocator, name: []const u8) !Checklist {
         return .{
@@ -16,25 +16,27 @@ pub const Checklist = struct {
 
     pub fn deinit(self: *@This(), allocator: Allocator) void {
         allocator.free(self.name);
-        for (self.items) |*item| {
+        for (self.items.items) |*item| {
             item.deinit(allocator);
         }
-        allocator.free(self.items);
-        // self.items.deinit(allocator);
+        // allocator.free(self.items);
+        self.items.deinit(allocator);
     }
 
     pub fn append(self: *@This(), allocator: Allocator, item: Item) !void {
-        self.items = try allocator.realloc(self.items, self.items.len + 1);
-        self.items[self.items.len - 1] = item;
-        // try self.items.append(allocator, item);
+        // self.items = try allocator.realloc(self.items, self.items.len + 1);
+        // self.items[self.items.len - 1] = item;
+        try self.items.append(allocator, item);
     }
 
     pub fn remove(self: *@This(), allocator: Allocator, i: usize) void {
-        self.items[i].deinit(allocator);
-        for (i..self.items.len - 1) |j| {
-            self.items[j] = self.items[j + 1];
-        }
-        self.items.len -= 1;
+        // self.items[i].deinit(allocator);
+        // for (i..self.items.len - 1) |j| {
+        //     self.items[j] = self.items[j + 1];
+        // }
+        // self.items.len -= 1;
+        var removed = self.items.orderedRemove(i);
+        removed.deinit(allocator);
     }
 
     pub fn newChallenge(self: *@This(), allocator: Allocator, title: []const u8, description: []const u8, response: []const u8) !void {
@@ -47,21 +49,39 @@ pub const Checklist = struct {
         try self.append(allocator, item);
     }
 
-    pub fn insert(self: *@This(), allocator: Allocator, item: Item, index: usize) !void {
-        const len = self.items.len;
-        self.items = try allocator.realloc(self.items, len + 1);
-        for (index..len) |i| {
-            self.items[i + 1] = self.items[i];
-        }
-        self.items[index] = item;
+    pub fn insert(self: *@This(), allocator: Allocator, index: usize, item: Item) !void {
+        // const len = self.items.len;
+        // self.items = try allocator.realloc(self.items, len + 1);
+        // for (index..len) |i| {
+        //     self.items[i + 1] = self.items[i];
+        // }
+        // self.items[index] = item;
+        try self.items.insert(allocator, index, item);
     }
 
-    pub fn reorder(self: *@This(), index: usize, new_pos: usize) void {
-        const item = self.items[index];
-        for (new_pos..self.items.len - 1) |i| {
-            self.items[i + 1] = self.items[i];
-        }
-        self.items[new_pos] = item;
+    pub fn reorder(self: *@This(), new_pos: usize, index: usize) void {
+        // const item = self.items[index];
+        // for (new_pos..self.items.len - 1) |i| {
+        //     self.items[i + 1] = self.items[i];
+        // }
+        // self.items[new_pos] = item;
+
+        const item = self.items.orderedRemove(index);
+        self.items.insertAssumeCapacity(new_pos, item);
+    }
+
+    pub fn jsonParse(allocator: Allocator, source: anytype, options: json.ParseOptions) !@This() {
+        const I = struct {
+            name: []const u8,
+            items: []Item,
+        };
+
+        const inner: I = try json.innerParse(I, allocator, source, options);
+
+        return .{
+            .name = inner.name,
+            .items = .fromOwnedSlice(inner.items),
+        };
     }
 };
 
@@ -252,7 +272,7 @@ test "make checklist" {
     };
 
     const expected = Checklist{
-        .items = &expected_items,
+        .items = .fromOwnedSlice(&expected_items),
         .name = "test checklist",
     };
 
@@ -332,14 +352,15 @@ test "parse checklist" {
 
     const expected = Checklist{
         .name = "Test checklist",
-        .items = @constCast(&[_]Item{ Item{ .challenge = .{
+        // @constCast because I trust myself to not modify this, and it is required to create the test data
+        .items = .fromOwnedSlice(@constCast(&[_]Item{ Item{ .challenge = .{
             .title = "Challenge item - Title max lenght 40",
             .description = "This is the place to describe your item action and response - Max length 100",
             .response = "Response - Max length 40",
         } }, Item{ .text = .{
             .item_type = ItemType.subtitle,
             .text = "Subtitle item - Max length 35",
-        } } }),
+        } } })),
     };
 
     const parsed: json.Parsed(Checklist) = try json.parseFromSlice(Checklist, alloc, data, .{});
