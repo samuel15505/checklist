@@ -10,7 +10,7 @@ pub const Groups = struct {
 
 pub const Group = struct {
     name: []const u8,
-    checklists: std.ArrayList(Checklist) = .empty,
+    checklists: []Checklist = &.{},
 
     pub fn new(allocator: Allocator, name: []const u8) !Group {
         return .{
@@ -20,23 +20,28 @@ pub const Group = struct {
 
     pub fn deinit(self: *@This(), allocator: Allocator) void {
         allocator.free(self.name);
-        for (self.checklists.items) |*checklist| {
+        for (self.checklists) |*checklist| {
             checklist.deinit(allocator);
         }
-        self.checklists.deinit(allocator);
+        allocator.free(self.checklists);
     }
 
-    pub fn addChecklist(self: *@This(), allocator: Allocator, checklist: Checklist) !void {
-        try self.checklists.append(allocator, checklist);
+    pub fn push(self: *@This(), allocator: Allocator, checklist: Checklist) !void {
+        self.checklists = try allocator.realloc(self.checklists, self.checklists.len + 1);
+        self.checklists[self.checklists.len - 1] = checklist;
     }
 
-    pub fn delChecklist(self: *@This(), allocator: Allocator, index: usize) void {
+    pub fn remove(self: *@This(), allocator: Allocator, index: usize) void {
         var checklist = self.checklists.orderedRemove(index);
         checklist.deinit(allocator);
     }
 
     pub fn newChecklist(self: *@This(), allocator: Allocator, name: []const u8) !void {
         const checklist = try Checklist.new(allocator, name);
-        try self.addChecklist(allocator, checklist);
+        try self.push(allocator, checklist);
     }
 };
+
+test "new checklist" {
+    
+}

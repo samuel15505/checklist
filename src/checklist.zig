@@ -6,7 +6,7 @@ const Value = json.Value;
 
 pub const Checklist = struct {
     name: []const u8,
-    items: std.ArrayList(Item) = .empty,
+    items: []Item = &.{},
 
     pub fn new(allocator: Allocator, name: []const u8) !Checklist {
         return .{
@@ -16,29 +16,52 @@ pub const Checklist = struct {
 
     pub fn deinit(self: *@This(), allocator: Allocator) void {
         allocator.free(self.name);
-        for (self.items.items) |*item| {
+        for (self.items) |*item| {
             item.deinit(allocator);
         }
-        self.items.deinit(allocator);
+        allocator.free(self.items);
+        // self.items.deinit(allocator);
     }
 
-    pub fn addItem(self: *@This(), allocator: Allocator, item: Item) !void {
-        try self.items.append(allocator, item);
+    pub fn append(self: *@This(), allocator: Allocator, item: Item) !void {
+        self.items = try allocator.realloc(self.items, self.items.len + 1);
+        self.items[self.items.len - 1] = item;
+        // try self.items.append(allocator, item);
     }
 
-    pub fn delItem(self: *@This(), allocator: Allocator, i: usize) void {
-        var removed = self.items.orderedRemove(i);
-        removed.deinit(allocator);
+    pub fn remove(self: *@This(), allocator: Allocator, i: usize) void {
+        self.items[i].deinit(allocator);
+        for (i..self.items.len - 1) |j| {
+            self.items[j] = self.items[j + 1];
+        }
+        self.items.len -= 1;
     }
 
-    pub fn addChallenge(self: *@This(), allocator: Allocator, title: []const u8, description: []const u8, response: []const u8) !void {
+    pub fn newChallenge(self: *@This(), allocator: Allocator, title: []const u8, description: []const u8, response: []const u8) !void {
         const item: Item = .{ .challenge = try .new(allocator, title, description, response) };
-        try self.addItem(allocator, item);
+        try self.append(allocator, item);
     }
 
-    pub fn addText(self: *@This(), allocator: Allocator, item_type: ItemType, text: []const u8) !void {
+    pub fn newText(self: *@This(), allocator: Allocator, item_type: ItemType, text: []const u8) !void {
         const item: Item = .{ .text = try .new(allocator, item_type, text) };
-        try self.addItem(allocator, item);
+        try self.append(allocator, item);
+    }
+
+    pub fn insert(self: *@This(), allocator: Allocator, item: Item, index: usize) !void {
+        const len = self.items.len;
+        self.items = try allocator.realloc(self.items, len + 1);
+        for (index..len) |i| {
+            self.items[i + 1] = self.items[i];
+        }
+        self.items[index] = item;
+    }
+
+    pub fn reorder(self: *@This(), index: usize, new_pos: usize) void {
+        const item = self.items[index];
+        for (new_pos..self.items.len - 1) |i| {
+            self.items[i + 1] = self.items[i];
+        }
+        self.items[new_pos] = item;
     }
 };
 
@@ -64,9 +87,9 @@ pub const Item = union(enum) {
         const value: I = try json.innerParse(I, allocator, source, options);
 
         if (value.type == .challenge) {
-            return .{ .challenge = try Challenge.new(allocator, value.text, value.comment, value.response) };
+            return .{ .challenge = .{ .title = value.text, .description = value.comment, .response = value.response } };
         } else {
-            return .{ .text = try Text.new(allocator, value.type, value.text) };
+            return .{ .text = .{ .item_type = value.type, .text = value.text } };
         }
     }
 };
@@ -133,6 +156,10 @@ const Text = struct {
             .item_type = item_type,
             .text = try allocator.dupe(u8, text),
         };
+    }
+
+    pub fn clone(self: *@This(), allocator: Allocator) !@This() {
+        return try new(allocator, self.item_type, self.text);
     }
 
     pub fn deinit(self: *@This(), allocator: Allocator) void {
@@ -225,15 +252,15 @@ test "make checklist" {
     };
 
     const expected = Checklist{
-        .items = .fromOwnedSlice(&expected_items),
+        .items = &expected_items,
         .name = "test checklist",
     };
 
     var checklist: Checklist = try .new(alloc, "test checklist");
     defer checklist.deinit(alloc);
 
-    try checklist.addText(alloc, .caution, "test caution");
-    try checklist.addChallenge(alloc, "test challenge", "subtitle", "response");
+    try checklist.newText(alloc, .caution, "test caution");
+    try checklist.newChallenge(alloc, "test challenge", "subtitle", "response");
 
     try testing.expectEqualDeep(expected, checklist);
 }
@@ -275,6 +302,47 @@ test "parse item" {
     } };
 
     const parsed: json.Parsed(Item) = try json.parseFromSlice(Item, alloc, data, .{});
+    defer parsed.deinit();
+
+    try testing.expectEqualDeep(expected, parsed.value);
+}
+
+test "parse checklist" {
+    const alloc = testing.allocator;
+
+    const data =
+        \\{
+        \\  "name": "Test checklist",
+        \\  "items": [
+        \\      {
+        \\          "type": "CHALLENGE",
+        \\          "text": "Challenge item - Title max lenght 40",
+        \\          "comment": "This is the place to describe your item action and response - Max length 100",
+        \\          "response": "Response - Max length 40"
+        \\      },
+        \\      {
+        \\          "type": "SUBTITLE",
+        \\          "text": "Subtitle item - Max length 35",
+        \\          "comment": "",
+        \\          "response": ""
+        \\      }
+        \\  ]
+        \\}
+    ;
+
+    const expected = Checklist{
+        .name = "Test checklist",
+        .items = @constCast(&[_]Item{ Item{ .challenge = .{
+            .title = "Challenge item - Title max lenght 40",
+            .description = "This is the place to describe your item action and response - Max length 100",
+            .response = "Response - Max length 40",
+        } }, Item{ .text = .{
+            .item_type = ItemType.subtitle,
+            .text = "Subtitle item - Max length 35",
+        } } }),
+    };
+
+    const parsed: json.Parsed(Checklist) = try json.parseFromSlice(Checklist, alloc, data, .{});
     defer parsed.deinit();
 
     try testing.expectEqualDeep(expected, parsed.value);
