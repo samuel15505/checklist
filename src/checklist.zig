@@ -1,6 +1,8 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
+const json = std.json;
+const Value = json.Value;
 
 pub const Checklist = struct {
     name: []const u8,
@@ -34,7 +36,7 @@ pub const Checklist = struct {
         try self.addItem(allocator, item);
     }
 
-    pub fn addText(self: *@This(), allocator: Allocator, item_type: TextType, text: []const u8) !void {
+    pub fn addText(self: *@This(), allocator: Allocator, item_type: ItemType, text: []const u8) !void {
         const item: Item = .{ .text = try .new(allocator, item_type, text) };
         try self.addItem(allocator, item);
     }
@@ -48,6 +50,23 @@ pub const Item = union(enum) {
         switch (self.*) {
             .challenge => |*item| item.deinit(allocator),
             .text => |*item| item.deinit(allocator),
+        }
+    }
+
+    pub fn jsonParse(allocator: Allocator, source: anytype, options: json.ParseOptions) !@This() {
+        const I = struct {
+            type: ItemType,
+            text: []const u8,
+            comment: []const u8,
+            response: []const u8,
+        };
+
+        const value: I = try json.innerParse(I, allocator, source, options);
+
+        if (value.type == .challenge) {
+            return .{ .challenge = try Challenge.new(allocator, value.text, value.comment, value.response) };
+        } else {
+            return .{ .text = try Text.new(allocator, value.type, value.text) };
         }
     }
 };
@@ -106,10 +125,10 @@ const Challenge = struct {
 };
 
 const Text = struct {
-    item_type: TextType,
+    item_type: ItemType,
     text: []const u8,
 
-    pub fn new(allocator: Allocator, item_type: TextType, text: []const u8) !Text {
+    pub fn new(allocator: Allocator, item_type: ItemType, text: []const u8) !Text {
         return .{
             .item_type = item_type,
             .text = try allocator.dupe(u8, text),
@@ -129,13 +148,72 @@ const Text = struct {
     }
 };
 
-pub const TextType = enum {
-    // challenge,
+pub const ItemType = enum {
+    challenge,
     subtitle,
     text,
     note,
     warning,
     caution,
+
+    pub fn jsonParse(allocator: Allocator, source: anytype, options: json.ParseOptions) json.ParseError(@TypeOf(source.*))!@This() {
+        // const k_t: json.Token = try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?);
+
+        // const key: []const u8 = switch (k_t) {
+        //     .string => |s| s,
+        //     .allocated_string => |s| {
+        //         defer allocator.free(s);
+        //         s;
+        //     },
+        //     else => return error.InvalidType,
+        // };
+
+        // if (!std.mem.eql(u8, key, "type")) return error.InvalidKey;
+
+        const v_t = try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?);
+
+        switch (v_t) {
+            .string => |s| return fromSlice(s) catch |err| switch (err) {
+                error.InvalidValue => json.ParseFromValueError.InvalidEnumTag,
+            },
+            .allocated_string => |s| {
+                defer allocator.free(s);
+                return fromSlice(s) catch |err| switch (err) {
+                    error.InvalidValue => json.ParseFromValueError.InvalidEnumTag,
+                };
+            },
+            else => return json.ParseFromValueError.InvalidEnumTag,
+        }
+
+        // return fromSlice(value);
+    }
+
+    fn fromSlice(s: []const u8) !@This() {
+        const keys = [_][]const u8{
+            "CHALLENGE",
+            "SUBTITLE",
+            "TEXT",
+            "NOTE",
+            "WARNING",
+            "CAUTION",
+        };
+
+        for (keys, 0..) |key, i| {
+            if (std.mem.eql(u8, s, key)) {
+                switch (i) {
+                    0 => return .challenge,
+                    1 => return .subtitle,
+                    2 => return .text,
+                    3 => return .note,
+                    4 => return .warning,
+                    5 => return .caution,
+                    else => unreachable,
+                }
+            }
+        }
+
+        return error.InvalidValue;
+    }
 };
 
 test "make checklist" {
@@ -158,4 +236,46 @@ test "make checklist" {
     try checklist.addChallenge(alloc, "test challenge", "subtitle", "response");
 
     try testing.expectEqualDeep(expected, checklist);
+}
+
+test "parse item type" {
+    const alloc = testing.allocator;
+
+    const I = struct { type: ItemType };
+
+    const data =
+        \\{
+        \\  "type": "CHALLENGE"
+        \\}
+    ;
+
+    const expected = I{ .type = .challenge };
+    const parsed: json.Parsed(I) = try json.parseFromSlice(I, alloc, data, .{});
+    defer parsed.deinit();
+
+    try testing.expectEqual(expected, parsed.value);
+}
+
+test "parse item" {
+    const alloc = testing.allocator;
+
+    const data =
+        \\{
+        \\"type": "CHALLENGE",
+        \\"text": "Challenge item - Title max lenght 40",
+        \\"comment": "This is the place to describe your item action and response - Max length 100",
+        \\"response": "Response - Max length 40"
+        \\}
+    ;
+
+    const expected: Item = .{ .challenge = .{
+        .title = "Challenge item - Title max lenght 40",
+        .description = "This is the place to describe your item action and response - Max length 100",
+        .response = "Response - Max length 40",
+    } };
+
+    const parsed: json.Parsed(Item) = try json.parseFromSlice(Item, alloc, data, .{});
+    defer parsed.deinit();
+
+    try testing.expectEqualDeep(expected, parsed.value);
 }
