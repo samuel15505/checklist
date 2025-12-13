@@ -54,6 +54,12 @@ pub fn build(b: *std.Build) void {
         .name = "exe_check",
     });
 
+    const lib_check = b.addLibrary(.{
+        .root_module = lib.root_module,
+        .name = "exe_check",
+    });
+
     const check = b.step("check", "Check if build compiles");
     check.dependOn(&exe_check.step);
+    check.dependOn(&lib_check.step);
 }
